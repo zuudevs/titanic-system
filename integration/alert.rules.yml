@@ -1,0 +1,189 @@
+# =============================================================================
+# Prometheus Alerting Rules — Titanic ML System
+# =============================================================================
+
+groups:
+  # ---------------------------------------------------------------------------
+  # Service Health Alerts
+  # ---------------------------------------------------------------------------
+  - name: service_health
+    rules:
+      - alert: InferenceServiceDown
+        expr: up{job="inference"} == 0
+        for: 30s
+        labels:
+          severity: critical
+          service: inference
+        annotations:
+          summary: "Inference service is down"
+          description: "Inference service ({{ $labels.instance }}) has been unreachable for more than 30 seconds."
+
+      - alert: ExporterServiceDown
+        expr: up{job="exporter"} == 0
+        for: 30s
+        labels:
+          severity: critical
+          service: exporter
+        annotations:
+          summary: "Exporter service is down"
+          description: "Exporter simulation service ({{ $labels.instance }}) has been unreachable for more than 30 seconds."
+
+  # ---------------------------------------------------------------------------
+  # Error Rate Alerts
+  # ---------------------------------------------------------------------------
+  - name: error_rate
+    rules:
+      - alert: InferenceHighErrorRate
+        expr: |
+          (
+            rate(inference_http_requests_errors_total[2m])
+            / rate(inference_http_requests_total[2m])
+          ) > 0.1
+        for: 2m
+        labels:
+          severity: critical
+          service: inference
+        annotations:
+          summary: "Inference error rate > 10%"
+          description: "Inference error rate is {{ $value | humanizePercentage }} over the last 2 minutes."
+
+      - alert: SimulationHighErrorRate
+        expr: |
+          (
+            rate(exporter_simulation_errors_total[2m])
+            / rate(exporter_simulation_requests_total[2m])
+          ) > 0.2
+        for: 2m
+        labels:
+          severity: warning
+          service: exporter
+        annotations:
+          summary: "Simulation error rate > 20%"
+          description: "Simulation error rate is {{ $value | humanizePercentage }} over the last 2 minutes."
+
+  # ---------------------------------------------------------------------------
+  # Latency Alerts
+  # ---------------------------------------------------------------------------
+  - name: latency
+    rules:
+      - alert: InferenceHighLatency
+        expr: |
+          histogram_quantile(0.95, rate(inference_http_request_duration_seconds_bucket[5m])) > 2
+        for: 5m
+        labels:
+          severity: warning
+          service: inference
+        annotations:
+          summary: "Inference P95 latency > 2s"
+          description: "Inference P95 latency is {{ $value | humanizeDuration }} over the last 5 minutes."
+
+      - alert: SimulationHighLatency
+        expr: |
+          histogram_quantile(0.95, rate(exporter_simulation_latency_seconds_bucket[5m])) > 5
+        for: 5m
+        labels:
+          severity: warning
+          service: exporter
+        annotations:
+          summary: "Simulation P95 round-trip latency > 5s"
+          description: "Simulation P95 round-trip latency is {{ $value | humanizeDuration }}."
+
+  # ---------------------------------------------------------------------------
+  # System Resource Alerts
+  # ---------------------------------------------------------------------------
+  - name: system_resources
+    rules:
+      - alert: InferenceHighCpuUsage
+        expr: inference_system_cpu_usage_percent > 80
+        for: 5m
+        labels:
+          severity: warning
+          service: inference
+        annotations:
+          summary: "Inference CPU usage > 80%"
+          description: "Inference CPU usage has been at {{ $value }}% for more than 5 minutes."
+
+      - alert: InferenceHighRamUsage
+        expr: inference_system_ram_usage_percent > 85
+        for: 5m
+        labels:
+          severity: warning
+          service: inference
+        annotations:
+          summary: "Inference RAM usage > 85%"
+          description: "Inference RAM usage has been at {{ $value }}% for more than 5 minutes."
+
+      - alert: ExporterHighCpuUsage
+        expr: exporter_system_cpu_usage_percent > 80
+        for: 5m
+        labels:
+          severity: warning
+          service: exporter
+        annotations:
+          summary: "Exporter CPU usage > 80%"
+          description: "Exporter CPU usage has been at {{ $value }}% for more than 5 minutes."
+
+      - alert: ExporterHighRamUsage
+        expr: exporter_system_ram_usage_percent > 85
+        for: 5m
+        labels:
+          severity: warning
+          service: exporter
+        annotations:
+          summary: "Exporter RAM usage > 85%"
+          description: "Exporter RAM usage has been at {{ $value }}% for more than 5 minutes."
+
+  # ---------------------------------------------------------------------------
+  # Model Health Alerts
+  # ---------------------------------------------------------------------------
+  - name: model_health
+    rules:
+      - alert: ModelNotLoaded
+        expr: inference_model_loaded == 0
+        for: 5m
+        labels:
+          severity: warning
+          service: inference
+        annotations:
+          summary: "Model production tidak ter-load"
+          description: "Inference service sudah berjalan dalam mode simulasi selama lebih dari 5 menit. Model MLflow belum berhasil di-load."
+
+      - alert: ModelLoadTimeSlow
+        expr: inference_model_load_time_seconds > 30
+        for: 1m
+        labels:
+          severity: warning
+          service: inference
+        annotations:
+          summary: "Model load time > 30 detik"
+          description: "Model membutuhkan {{ $value | humanizeDuration }} untuk di-load. Pertimbangkan optimisasi ukuran artifact."
+
+  # ---------------------------------------------------------------------------
+  # Simulation Traffic Alerts
+  # ---------------------------------------------------------------------------
+  - name: simulation_traffic
+    rules:
+      - alert: NoSimulationTraffic
+        expr: |
+          rate(exporter_simulation_requests_total[5m]) == 0
+            and exporter_simulation_active == 1
+        for: 5m
+        labels:
+          severity: info
+          service: exporter
+        annotations:
+          summary: "Tidak ada simulation traffic"
+          description: "Simulation loop aktif tapi tidak ada request terkirim selama 5 menit terakhir."
+
+      - alert: SimulationInferenceDisconnected
+        expr: |
+          exporter_simulation_active == 1
+            and rate(exporter_simulation_errors_total[2m])
+                / rate(exporter_simulation_requests_total[2m]) > 0.9
+        for: 2m
+        labels:
+          severity: critical
+          service: exporter
+        annotations:
+          summary: "Simulation tidak bisa terhubung ke inference"
+          description: "Lebih dari 90% simulation requests gagal. Kemungkinan inference service down."

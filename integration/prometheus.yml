@@ -1,13 +1,29 @@
 global:
-  scrape_interval: 2s
+  scrape_interval: 5s
+  evaluation_interval: 5s
 
+# -----------------------------------------------------------------------------
+# Alerting — load rules dari alert.rules.yml
+# -----------------------------------------------------------------------------
+rule_files:
+  - "alert.rules.yml"
+
+# -----------------------------------------------------------------------------
+# Scrape Configs
+# -----------------------------------------------------------------------------
 scrape_configs:
   - job_name: "inference"
     static_configs:
       - targets:
           - "127.0.0.1:8001"
+        labels:
+          service: "inference"
+          env: "production"
 
   - job_name: "exporter"
     static_configs:
       - targets:
           - "127.0.0.1:8000"
+        labels:
+          service: "exporter"
+          env: "simulation"

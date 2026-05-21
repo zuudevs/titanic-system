@@ -2,4 +2,11 @@ __pycache__/
 *.pyc
 .vscode/
 .env
-data/
+
+# Prometheus local data
+data/chunks_head/
+data/wal/
+*.active
+
+# Grafana runtime data
+grafana_data/
