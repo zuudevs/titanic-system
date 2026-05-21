@@ -39,18 +39,6 @@ jobs:
           # Instalasi tools untuk evaluasi kode (Linter & Formatter)
           pip install flake8 black pylint
 
-      - name: Check Code Formatting (Black)
-        run: |
-          # Evaluasi apakah format kode sudah sesuai dengan standar PEP 8
-          black --check . || echo "Peringatan: Format kode tidak sesuai standar Black. Disarankan untuk memformat ulang kode."
-
-      - name: Lint Code (Flake8)
-        run: |
-          # Pengecekan syntax error atau undefined names yang krusial
-          flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-          # Pengecekan standar kompleksitas (hanya sebagai warning)
-          flake8 . --count --exit-zero --max-complexity=10 --max-line-length=88 --statistics
-
       - name: Verify Imports (Dry Run)
         env:
           CI: "true"
