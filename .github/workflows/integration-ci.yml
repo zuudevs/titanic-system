@@ -1,0 +1,68 @@
+name: Integration CI
+
+on:
+  push:
+    branches: [ "main" ]
+    paths:
+      - 'integration/**'
+      - '.github/workflows/integration-ci.yml'
+  pull_request:
+    branches: [ "main" ]
+    paths:
+      - 'integration/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  code-quality-and-verify:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./integration
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: 'pip'
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          # Instalasi tools untuk evaluasi kode (Linter & Formatter)
+          pip install flake8 black pylint
+
+      - name: Check Code Formatting (Black)
+        run: |
+          # Evaluasi apakah format kode sudah sesuai dengan standar PEP 8
+          black --check . || echo "Peringatan: Format kode tidak sesuai standar Black. Disarankan untuk memformat ulang kode."
+
+      - name: Lint Code (Flake8)
+        run: |
+          # Pengecekan syntax error atau undefined names yang krusial
+          flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+          # Pengecekan standar kompleksitas (hanya sebagai warning)
+          flake8 . --count --exit-zero --max-complexity=10 --max-line-length=88 --statistics
+
+      - name: Verify Imports (Dry Run)
+        env:
+          CI: "true"
+          DAGSHUB_TOKEN: "${{ secrets.DAGSHUB_TOKEN }}"
+          DAGSHUB_USER: "${{ secrets.DAGSHUB_USER }}"
+          DAGSHUB_REPO: "${{ secrets.DAGSHUB_REPO }}"
+          MLFLOW_TRACKING_URI: "https://dagshub.com/${{ secrets.DAGSHUB_USER }}/${{ secrets.DAGSHUB_REPO }}.mlflow"
+          MLFLOW_TRACKING_USERNAME: "${{ secrets.DAGSHUB_USER }}"
+          MLFLOW_TRACKING_PASSWORD: "${{ secrets.DAGSHUB_TOKEN }}"
+          MLFLOW_EXPERIMENT_NAME: "${{ secrets.DAGSHUB_REPO }}"
+        run: |
+          # Memastikan layanan dapat diinisialisasi tanpa Runtime/ModuleNotFound Error
+          python -c "import config, inference, exporter; print('Semua modul integrasi berhasil diimpor.')"
+
+      # TODO: Tambahkan step 'pytest' di sini ketika unit test sudah diimplementasikan
