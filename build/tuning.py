@@ -9,6 +9,7 @@ import mlflow.sklearn
 import dagshub
 from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import accuracy_score, precision_score, recall_score
 
 def main():
     # 1. Autentikasi DagsHub (token-based, no OAuth prompt)
