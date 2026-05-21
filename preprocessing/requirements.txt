@@ -1,0 +1,7 @@
+mlflow==2.19.0 
+scikit-learn 
+pandas 
+numpy 
+matplotlib 
+seaborn 
+jupyter
