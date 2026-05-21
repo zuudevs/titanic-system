@@ -10,7 +10,7 @@ permissions:
   contents: write
 
 jobs:
-  preprocess:
+  preprocessing:
     runs-on: ubuntu-latest
 
     steps:

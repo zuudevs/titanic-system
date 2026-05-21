@@ -16,7 +16,7 @@ permissions:
   contents: read
 
 jobs:
-  code-quality-and-verify:
+  ci-integration-test:
     runs-on: ubuntu-latest
     defaults:
       run:
