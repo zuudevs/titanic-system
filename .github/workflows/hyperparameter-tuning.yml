@@ -16,19 +16,19 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Set up Miniconda
+      - name: Setup Conda
         uses: conda-incubator/setup-miniconda@v3
         with:
           auto-activate-base: false
+          environment-file: build/conda.yaml
+          activate-environment: titanic-system
           miniconda-version: latest
-          
 
-      - name: Install Dependencies
+      - name: Verify Environment
         shell: bash -el {0}
         run: |
-          conda install -y -c conda-forge python=3.12.7
-          pip install -r preprocessing/requirements.txt
-          pip install mlflow dagshub
+          python --version
+          python -c "from dotenv import load_dotenv; print('dotenv OK')"
 
       - name: Run Hyperparameter Tuning
         shell: bash -el {0}
