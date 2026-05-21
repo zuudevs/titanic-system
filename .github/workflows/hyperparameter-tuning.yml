@@ -16,18 +16,19 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Set up Miniconda
+      - name: Setup Conda
         uses: conda-incubator/setup-miniconda@v3
         with:
+          activate-environment: titanic-system
+          environment-file: build/conda.yaml
           auto-activate-base: false
-          miniconda-version: latest
 
-      - name: Install Dependencies
+      - name: Verify Environment
         shell: bash -el {0}
         run: |
-          conda install -y -c conda-forge python=3.12
-          pip install -r preprocessing/requirements.txt
-          pip install mlflow dagshub
+          python --version
+          pip list
+          python -c "from dotenv import load_dotenv; print('dotenv OK')"
 
       - name: Run Hyperparameter Tuning
         shell: bash -el {0}
@@ -35,7 +36,7 @@ jobs:
           DAGSHUB_REPO: ${{ secrets.DAGSHUB_REPO }}
           DAGSHUB_USER: ${{ secrets.DAGSHUB_USER }}
           DAGSHUB_TOKEN: ${{ secrets.DAGSHUB_TOKEN }}
-
+          MLFLOW_TRACKING_URI: https://dagshub.com/${{ secrets.DAGSHUB_USER }}/${{ secrets.DAGSHUB_REPO }}.mlflow
           MLFLOW_TRACKING_USERNAME: ${{ secrets.DAGSHUB_USER }}
           MLFLOW_TRACKING_PASSWORD: ${{ secrets.DAGSHUB_TOKEN }}
 

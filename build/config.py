@@ -7,7 +7,7 @@ PROJECT_DIR = Path(__file__).resolve().parents[1]
 DATASET_PATH = PROJECT_DIR / "dataset/clean.csv"
 ENV_PATH = PROJECT_DIR / '.env'
 
-if ENV_PATH.exists:
+if ENV_PATH.exists():
 	load_dotenv(ENV_PATH)
 
 DAGSHUB_REPO = os.getenv('DAGSHUB_REPO', '')
