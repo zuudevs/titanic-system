@@ -2,8 +2,14 @@ name: Data Preprocessing
 
 on:
   push:
-    branches:
-      - main
+    branches: [ "main" ]
+    paths:
+      - 'preprocessing/**'
+      - '.github/workflows/data-preprocessing.yml'
+  pull_request:
+    branches: [ "main" ]
+    paths:
+      - 'preprocessing/**'
   workflow_dispatch:
 
 permissions:

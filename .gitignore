@@ -4,8 +4,8 @@ __pycache__/
 .env
 
 # Prometheus local data
-data/chunks_head/
-data/wal/
+data/
+data/
 *.active
 
 # Grafana runtime data

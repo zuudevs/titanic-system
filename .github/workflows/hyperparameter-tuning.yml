@@ -2,7 +2,14 @@ name: Hyperparameter Tuning
 
 on:
   push:
-    branches: ["main"]
+    branches: [ "main" ]
+    paths:
+      - 'build/**'
+      - '.github/workflows/hyperparameter-tuning.yml'
+  pull_request:
+    branches: [ "main" ]
+    paths:
+      - 'build/**'
   workflow_dispatch:
 
 permissions:

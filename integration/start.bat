@@ -1,7 +1,8 @@
 @echo off
 chcp 65001
+
 echo ===============================================
-echo   Titanic ML System — Local Startup
+echo   Titanic ML System - Local Startup
 echo ===============================================
 echo.
 
